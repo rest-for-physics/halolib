@@ -48,6 +48,9 @@ void TRestHaloMetadata::PrintMetadata() {
     RESTMetadata << " Frequency points  : " << fNumFreqPoints << "\n";
     RESTMetadata << " Attenuation       : " << fAttenuation << " dB\n";
     RESTMetadata << " Notes             : " << fNotes << "\n";
+    RESTMetadata << " Calibration file  : " << fLastCal << "\n";
+    RESTMetadata << " Standard Deviation: " << fStdDev << "\n";
+    RESTMetadata << " Uncertainties     : " << (fUncertaintiesProvided ? "Provided" : "Computed from spectrum") << "\n";
     // print stored units
     RESTMetadata << " Stored value unit : " << GetValueUnitString() << "\n";
 }
