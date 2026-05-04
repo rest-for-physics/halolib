@@ -55,3 +55,12 @@ if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test)
     add_test(NAME TRestHaloTrimProcess_test COMMAND TRestHaloTrimProcess_test)
 endif()
 
+if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test)
+    add_executable(TRestHaloCombine_test test/TRestHaloCombine_test.cxx)
+    target_include_directories(TRestHaloCombine_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+    target_link_libraries(TRestHaloCombine_test PRIVATE ${PROJECT_NAME})
+    enable_testing()
+    add_test(NAME TRestHaloCombine_test COMMAND TRestHaloCombine_test)
+endif()
+
+
