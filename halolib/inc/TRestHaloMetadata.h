@@ -43,6 +43,9 @@ private:
     int     fRunNumber = -1;
     double  fAttenuation = 0;            // dB if available
     TString fNotes = "";
+    TString fLastCal = "";               // Most recent calibration run filename
+    double  fStdDev = 0;                 // Sample standard deviation of spectrum
+    bool    fUncertaintiesProvided = false;  // true if uncertainties were provided, false if computed
     // unit for the stored values (0 = V_RMS, 1 = W)
     Int_t fValueUnit = 0; // use enum EValueUnit
 
@@ -71,6 +74,9 @@ public:
     void SetRunNumber(int r) { fRunNumber = r; }
     void SetAttenuation(double a) { fAttenuation = a; }
     void SetNotes(const TString& n) { fNotes = n; }
+    void SetLastCal(const TString& f) { fLastCal = f; }
+    void SetStdDev(double s) { fStdDev = s; }
+    void SetUncertaintiesProvided(bool b) { fUncertaintiesProvided = b; }
     void SetValueUnit(Int_t u) { fValueUnit = u; }
 
     // --- Getters ---
@@ -89,6 +95,9 @@ public:
     int     GetRunNumber() const { return fRunNumber; }
     double  GetAttenuation() const { return fAttenuation; }
     TString GetNotes() const { return fNotes; }
+    TString GetLastCal() const { return fLastCal; }
+    double  GetStdDev() const { return fStdDev; }
+    bool    GetUncertaintiesProvided() const { return fUncertaintiesProvided; }
     Int_t GetValueUnit() const { return fValueUnit; }
     TString GetValueUnitString() const;
 

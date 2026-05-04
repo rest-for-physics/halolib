@@ -10,8 +10,9 @@
 // are described in the associated TRestHaloMetadata (V_RMS or W).
 class TRestHaloEvent : public TRestEvent {
 private:
-    std::vector<double> fFrequency; // Hz
-    std::vector<double> fValues;    // stored values (units in metadata)
+    std::vector<double> fFrequency;      // Hz
+    std::vector<double> fValues;         // stored values (units in metadata)
+    std::vector<double> fUncertainties;  // per-bin uncertainties (same units as values)
 
     // metadata containing units and acquisition info
     TRestHaloMetadata fMetadata;
@@ -19,6 +20,7 @@ private:
     double fStartFrequency = 0; // Hz
     double fStopFrequency = 0;  // Hz
     double fResolution = 0;     // Hz per bin
+    double fStdDev = 0;         // Sample standard deviation across all bins
 
 public:
     TRestHaloEvent();
@@ -29,8 +31,15 @@ public:
                      const std::vector<double>& values,
                      TRestHaloMetadata::EValueUnit unit);
 
+    // Accept input values with per-bin uncertainties
+    void SetSpectrum(const std::vector<double>& freq,
+                     const std::vector<double>& values,
+                     const std::vector<double>& uncertainties,
+                     TRestHaloMetadata::EValueUnit unit);
+
     const std::vector<double>& GetFrequencies() const { return fFrequency; }
     const std::vector<double>& GetValues() const { return fValues; }
+    const std::vector<double>& GetUncertainties() const { return fUncertainties; }
 
     const TRestHaloMetadata& GetMetadata() const { return fMetadata; }
     TRestHaloMetadata& GetMetadata() { return fMetadata; }
@@ -45,6 +54,9 @@ public:
 
     // Convenience overload: returns value in stored unit
     double GetValueAtFrequency(double f) const { return GetValueAtFrequency(f, GetStoredUnit()); }
+
+    // Get standard deviation of spectrum
+    double GetStdDev() const { return fStdDev; }
 
     // Statistics (converted to outUnit)
 
