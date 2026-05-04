@@ -9,7 +9,6 @@ from `input.root`, converts them to `TRestHaloEvent` objects and writes each
 event into `output.root` using the same name as the original TGraph.
 Also want to:
 - try trimming
-- try fitting
 - try combining
 """
 import sys
@@ -51,7 +50,7 @@ def main():
     gSystem.Load(lib_to_load)
 
     try:
-        from ROOT import TRestHaloEvent, TRestHaloMetadata, TRestHaloTrimProcess
+        from ROOT import TRestHaloEvent, TRestHaloMetadata, TRestHaloTrimProcess, TRestHaloCombine
     except Exception as e:
         print('Failed to import REST classes from ROOT. Ensure libhalolib is available.')
         print('Error:', e)
@@ -62,6 +61,8 @@ def main():
     fout = TFile.Open(outfile, 'RECREATE')
 
     processed = 0
+    first_two_events = []  # Store first two trimmed events for combination
+    
     for key in fin.GetListOfKeys():
         obj = key.ReadObj()
         if (obj.ClassName() == 'TGraph') or obj.InheritsFrom('TGraph'):
@@ -90,7 +91,7 @@ def main():
                 # estimate resolution and center frequency from the graph
                 res = freqs[1] - freqs[0]
                 meta.SetResolutionBandwidth(res)
-                meta.SetCenterFrequency((freqs[0] + freqs[-1]) / 2.0)
+                meta.SetCenterFrequency((freqs[0] + freqs[-1]) / 2.0) # Assumes symmetric spectrum
             meta.SetExperimentName('ConvertedFromTGraph')
             meta.SetNotes('Converted with processor.py')
             # Note: PyROOT may not expose TObject::SetName for this class,
@@ -109,12 +110,35 @@ def main():
             # write object into output file using the same name
             fout.cd()
             fout.WriteObject(write_ev, name)
+            
+            # Store first two events for combination
+            if processed < 2:
+                first_two_events.append(write_ev)
+            
             processed += 1
 
 
     fout.Close()
     fin.Close()
     print('Finished. Written', processed, 'TRestHaloEvent objects to', outfile)
+
+    # Combine first two events if available
+    if len(first_two_events) >= 2:
+        print('\nCombining first two events...')
+        combiner = TRestHaloCombine()
+        combiner.AddEvent(first_two_events[0])
+        combiner.AddEvent(first_two_events[1])
+        
+        combined_event = combiner.Combine()
+        
+        if combined_event:
+            fout_comb = TFile.Open('test_combination.root', 'RECREATE')
+            fout_comb.WriteObject(combined_event, 'CombinedSpectrum_0_1')
+            fout_comb.Close()
+            print('Combined spectrum written to test_combination.root')
+        else:
+            print('Failed to combine events')
+
 
 
 if __name__ == '__main__':
