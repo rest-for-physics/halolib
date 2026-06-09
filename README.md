@@ -11,48 +11,15 @@ This tutorial demonstrates a complete data processing workflow for haloscope (fr
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Prerequisites](#prerequisites)
-3. [Architecture](#architecture)
-4. [Detailed Workflow](#detailed-workflow)
-5. [Running the Script](#running-the-script)
-6. [Understanding Each Step](#understanding-each-step)
-7. [Customization Guide](#customization-guide)
-8. [Advanced Topics](#advanced-topics)
-9. [Troubleshooting](#troubleshooting)
-
----
-
-## Overview
-
-### What This Script Does
-
-The processor script implements a complete data pipeline:
-
-```
-Input TGraphs (Raw Data)
-    ↓
-[Convert] → TRestHaloEvent objects
-    ↓
-[Enhance] → Add metadata (frequency info, experiment details)
-    ↓
-[Process] → Trim spectra to uniform bin count
-    ↓
-[Output] → ROOT file with trimmed events
-    ↓
-[Combine] → Chi2-weighted average of first two spectra
-    ↓
-[Output] → Separate ROOT file with combined spectrum
-```
-
-### Key Capabilities
-
-- **Format Conversion**: TGraph → TRestHaloEvent
-- **Unit Conversion**: Volts (V_RMS) ↔ Watts (power)
-- **Spectrum Trimming**: Chop data to the physics region you are interested in
-- **Metadata Tracking**: Experiment conditions, frequency parameters
-- **Spectral Combination**: Chi2-weighted averaging with per-bin uncertainties
-- **Batch Processing**: Efficient handling of thousands of spectra
+1. [Prerequisites](#prerequisites)
+2. [Architecture](#architecture)
+3. [Detailed Workflow](#detailed-workflow)
+4. [Running the Script](#running-the-script)
+5. [Understanding Each Step](#understanding-each-step)
+6. [Customization Guide](#customization-guide)
+7. [Advanced Topics](#advanced-topics)
+8. [Troubleshooting](#troubleshooting)
+9. [Example Processing Script](#example-processing-script)
 
 ---
 
@@ -60,9 +27,9 @@ Input TGraphs (Raw Data)
 
 ### Software Requirements
 
-- **Python 3.6+** with PyROOT bindings (this processing script only, not necessary for halolib itself)
 - **ROOT Framework** 6.0+ 
 - **REST Framework** 2.4.3+ with halolib library
+- Process script: **Python 3.6+** with PyROOT bindings 
 
 ### Installation Verification
 
@@ -79,7 +46,7 @@ python3 -c "from ROOT import TFile; print('ROOT available')"
 
 ### Data Requirements
 
-Input data is a ROOT file format containing:
+Input data in the example processing script is a ROOT file format containing:
 - **TGraph objects** with names starting with `SpectrumSumFile_`
 - **X-axis values**: Frequency points (Hz)
 - **Y-axis values**: Amplitude values (typically raw is V_RMS)
@@ -98,18 +65,18 @@ The fundamental container for spectrum data.
 TRestHaloEvent
 ├── fFrequency[]           - Frequency points (Hz)
 ├── fValues[]              - Spectrum values (V_RMS or Watts)
-├── fUncertainties[]       - Per-bin uncertainties, defaults as sampling standard deviation
-├── fMetadata              - Experiment information, often manually declared 
+├── fUncertainties[]       - Per-bin uncertainties
+├── fMetadata              - Experiment information, manually declared 
 ├── fStartFrequency        - First frequency point
 ├── fStopFrequency         - Last frequency point
 └── fResolution            - Bin size (Hz per bin)
 ```
 
 **Key Methods:**
-- `SetSpectrum(freqs, values, unit)` - Initialize with uncertainties computed by sampling standard deviation
-- `SetSpectrum(freqs, values, uncertainties, unit)` - Initialize with measured uncertainties (given array)
+- `SetSpectrum(freqs, values, unit, uncertainties=optional)` - Initialize data arrays with optional uncertainties
+- `SetUncertainties(uncertainties)` - Add or update uncertainties for existing spectrum
 - `GetFrequencies()` - Retrieve frequency array
-- `GetValues()` - Retrieve spectrum values
+- `GetValues()` - Retrieve (power) spectrum values
 - `GetUncertainties()` - Retrieve uncertainty array
 - `GetValueAtFrequency(f, unit)` - Interpolate value at specific frequency
 
@@ -225,14 +192,14 @@ where 50Ω is standard impedance for RF systems.
 #### Step 3c: Event Creation
 ```python
 ev = TRestHaloEvent()
-ev.SetSpectrum(freqs, vals_w, 1)  # 1 = Watts unit
+ev.SetSpectrum(freqs, vals_w, 1)  # 1 = Watts unit, no uncertainties provided
 ```
 
 Creates TRestHaloEvent with:
 - Input frequency array
 - Input power values (Watts)
 - Unit specified as Watts
-- Automatic uncertainty computation: standard deviation of spectrum values
+- No uncertainties (can be added later with `SetUncertainties()` if needed)
 
 #### Step 3d: Metadata Population
 ```python
@@ -442,7 +409,14 @@ print(f"Bins: {meta.GetNumFreqPoints()}")
 
 ### Step 5: Why Combine Spectra?
 
-**Averaging measurements improves signal quality:**
+**Averaging measurements improves signal quality when you have uncertainties:**
+
+To use spectrum combination, you must provide per-bin uncertainties. These can come from:
+1. Direct measurement uncertainties (best case)
+2. Computed from noise characteristics
+3. Systematic uncertainty estimates
+
+Once uncertainties are available:
 
 **Single measurement:**
 - One noise realization
@@ -515,20 +489,62 @@ meta.SetNotes(f'Converted with processor.py | Source: {name}')
 # Or use available setters for standardized fields
 ```
 
-**Available metadata setters:**
+## Available Metadata Setters
+
 ```python
 meta.SetValueUnit(int)              # 0 = V_RMS, 1 = Watts
-meta.SetNumFreqPoints(int)
-meta.SetResolutionBandwidth(float)
-meta.SetCenterFrequency(float)
-meta.SetExperimentName(string)
-meta.SetNotes(string)
+meta.SetNumFreqPoints(int)          # Number of frequency bins
+meta.SetResolutionBandwidth(float)  # Hz per bin
+meta.SetCenterFrequency(float)      # Central frequency
+meta.SetExperimentName(string)      # Experiment identifier
+meta.SetNotes(string)               # Description/comments
 meta.SetLastCal(string)             # Calibration filename
-meta.SetStdDev(float)               # Standard deviation
-meta.SetUncertaintiesProvided(bool) # Uncertainties computed vs provided
+meta.SetStdDev(float)               # Standard deviation or average uncertainty
+meta.SetUncertaintiesProvided(bool) # Uncertainties provided vs computed
+```
+
+### Adding Uncertainties to Your Data
+
+**Pattern 1: If you have uncertainties from measurement:**
+```python
+ev = TRestHaloEvent()
+uncertainties = compute_uncertainties(spectrum)  # Your uncertainty calculation
+ev.SetSpectrum(freqs, vals_w, 1, uncertainties)  # Add at creation
+```
+
+**Pattern 2: If uncertainties become available later:**
+```python
+ev = TRestHaloEvent()
+ev.SetSpectrum(freqs, vals_w, 1)  # Create first
+# ... process event, trimming, etc ...
+ev.SetUncertainties(uncertainties)  # Add when ready
+```
+
+**Pattern 3: For combination, uncertainties are essential:**
+```python
+ev1 = TRestHaloEvent()
+ev1.SetSpectrum(freqs1, vals1, 1, unc1)  # Must have uncertainties
+ev2 = TRestHaloEvent()
+ev2.SetSpectrum(freqs2, vals2, 1, unc2)  # Must have uncertainties
+
+combiner = TRestHaloCombine()
+combiner.AddEvent(ev1)
+combiner.AddEvent(ev2)
+result = combiner.Combine()  # Produces chi2-weighted average
 ```
 
 ### Conditional Processing
+
+**Process only spectra with uncertainties available:**
+
+```python
+# Check if uncertainties are present before combining
+if not ev1.GetUncertainties().empty() and not ev2.GetUncertainties().empty():
+    combiner = TRestHaloCombine()
+    # ... proceed with combination
+else:
+    print('Skipping combination: uncertainties not available')
+```
 
 **Process only spectra above minimum quality threshold:**
 
@@ -638,18 +654,24 @@ Compatible? Different frequency ranges → align on union, check within overlap 
 **Types of uncertainty in combined spectrum:**
 
 1. **Measurement uncertainty** (per-bin): From individual spectrum quality
-   - Computed automatically if not provided
+   - Must be provided explicitly when creating event
+   - Use `SetSpectrum(freq, values, unit, uncertainties)` or `SetUncertainties(uncertainties)`
    - Tracked through combination process
 
 2. **Combination uncertainty**: Reduced when combining
    - Formula: $\sigma_{combined} = \sqrt{\frac{1}{\sum_i 1/\sigma_i^2}}$
    - Always ≤ minimum input uncertainty
+   - Automatically computed during combination
 
 3. **Resampling uncertainty**: From interpolation during trimming
    - Generally negligible compared to measurement uncertainty
    - Affects smooth regions more than sharp features
+   - Uncertainties are preserved (not modified) during trimming
 
-**Best practice:** Propagate uncertainties through entire pipeline
+**Best practice:** 
+- Provide per-bin uncertainties before combining spectra
+- Use `SetUncertainties()` if uncertainties become available after event creation
+- Always validate that events have uncertainties before calling `TRestHaloCombine::Combine()`
 
 ### Batch Processing Large Datasets
 
@@ -857,6 +879,69 @@ for i, key in enumerate(fin.GetListOfKeys()):
         import gc
         gc.collect()
 ```
+
+## Example Processing Script
+
+### What This Script Does
+
+The processor script implements a complete data pipeline:
+
+```
+Input TGraphs (Raw Data)
+    ↓
+[Convert] → TRestHaloEvent objects
+    ↓
+[Enhance] → Add metadata (frequency info, experiment details)
+    ↓
+[Process] → Trim spectra to uniform bin count
+    ↓
+[Output] → ROOT file with trimmed events
+    ↓
+[Combine] → Chi2-weighted average of first two spectra
+    ↓
+[Output] → Separate ROOT file with combined spectrum
+```
+
+### Key Capabilities
+
+- **Format Conversion**: TGraph → TRestHaloEvent
+- **Unit Conversion**: Volts (V_RMS) ↔ Watts (power)
+- **Spectrum Trimming**: Chop data to the physics region you are interested in
+- **Metadata Tracking**: Experiment conditions, frequency parameters
+- **Optional Uncertainties**: Add per-bin uncertainties at creation or later with `SetUncertainties()`
+- **Spectral Combination**: Chi2-weighted averaging with per-bin uncertainties
+- **Batch Processing**: Efficient handling of thousands of spectra
+
+---
+
+## Using the Unified SetSpectrum API
+
+With the unified `SetSpectrum()` method, you have three usage patterns:
+
+### Pattern 1: Basic Spectrum (No Uncertainties)
+```python
+ev = TRestHaloEvent()
+ev.SetSpectrum(freqs, values, unit)
+```
+Use this when you only have spectrum values and no uncertainty information.
+
+### Pattern 2: Spectrum with Uncertainties at Creation
+```python
+ev = TRestHaloEvent()
+ev.SetSpectrum(freqs, values, unit, uncertainties)
+```
+Use this when you have per-bin uncertainty estimates available at creation time.
+
+### Pattern 3: Add Uncertainties Later
+```python
+ev = TRestHaloEvent()
+ev.SetSpectrum(freqs, values, unit)  # Create without uncertainties
+# ... later ...
+ev.SetUncertainties(uncertainties)  # Add them when available
+```
+Use this when uncertainties are computed or become available after initial event creation.
+
+All three patterns are fully supported and work seamlessly with `TRestHaloCombine` for spectral combination.
 
 
 
