@@ -81,7 +81,8 @@ def main():
             ev = TRestHaloEvent()
             # TRestHaloMetadata enum members may not be exposed to PyROOT;
             # use integer value 1 for `W` (see TRestHaloMetadata::EValueUnit)
-            ev.SetSpectrum(freqs, vals_w, 1)
+            # SetSpectrum takes (freqs, values, unit, uncertainties=optional)
+            ev.SetSpectrum(freqs, vals_w, 1)  # No uncertainties provided initially
             
             # Populate metadata (attached to the event and serialized with it)
             meta = ev.GetMetadata()
@@ -122,22 +123,22 @@ def main():
     fin.Close()
     print('Finished. Written', processed, 'TRestHaloEvent objects to', outfile)
 
-    # Combine first two events if available
-    if len(first_two_events) >= 2:
-        print('\nCombining first two events...')
-        combiner = TRestHaloCombine()
-        combiner.AddEvent(first_two_events[0])
-        combiner.AddEvent(first_two_events[1])
-        
-        combined_event = combiner.Combine()
-        
-        if combined_event:
-            fout_comb = TFile.Open('test_combination.root', 'RECREATE')
-            fout_comb.WriteObject(combined_event, 'CombinedSpectrum_0_1')
-            fout_comb.Close()
-            print('Combined spectrum written to test_combination.root')
-        else:
-            print('Failed to combine events')
+    # Combine first two events if available (in progress, not ready for use at high level)
+    #if len(first_two_events) >= 2:
+    #    print('\nCombining first two events...')
+    #    combiner = TRestHaloCombine()
+    #    combiner.AddEvent(first_two_events[0])
+    #    combiner.AddEvent(first_two_events[1])
+    #    
+    #    combined_event = combiner.Combine()
+    #    
+    #    if combined_event:
+    #        fout_comb = TFile.Open('test_combination.root', 'RECREATE')
+    #        fout_comb.WriteObject(combined_event, 'CombinedSpectrum_0_1')
+    #        fout_comb.Close()
+    #        print('Combined spectrum written to test_combination.root')
+    #    else:
+    #        print('Failed to combine events')
 
 
 
