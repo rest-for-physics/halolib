@@ -18,7 +18,8 @@ void TRestHaloEvent::Initialize() {}
 
 void TRestHaloEvent::SetSpectrum(const std::vector<double>& freq,
                                  const std::vector<double>& values,
-                                 TRestHaloMetadata::EValueUnit unit) {
+                                 TRestHaloMetadata::EValueUnit unit,
+                                 const std::vector<double>& uncertainties) {
     fFrequency = freq;
     fValues = values;
     fMetadata.SetValueUnit(static_cast<int>(unit));
@@ -34,67 +35,29 @@ void TRestHaloEvent::SetSpectrum(const std::vector<double>& freq,
         fStartFrequency = fStopFrequency = fResolution = 0;
     }
 
-    // Compute sample standard deviation of the spectrum values
-    if (fValues.size() > 1) {
-        double mean = std::accumulate(fValues.begin(), fValues.end(), 0.0) / fValues.size();
-        double sq_sum = 0.0;
-        for (double v : fValues) {
-            sq_sum += (v - mean) * (v - mean);
+    // Set uncertainties if provided, otherwise leave empty
+    if (!uncertainties.empty()) {
+        if (uncertainties.size() != values.size()) {
+            std::cerr << "TRestHaloEvent::SetSpectrum() - Error: Uncertainties size ("
+                      << uncertainties.size() << ") does not match values size ("
+                      << values.size() << ")" << std::endl;
+            fUncertainties.clear();
+            return;
         }
-        fStdDev = std::sqrt(sq_sum / (fValues.size() - 1));  // sample std dev
+        fUncertainties = uncertainties;
     } else {
-        fStdDev = 0;
+        fUncertainties.clear();
     }
-    
-    // Store standard deviation in metadata for tracking
-    fMetadata.SetStdDev(fStdDev);
-    fMetadata.SetUncertaintiesProvided(false);  // Using computed standard deviation
-    
-    // Set uncertainties to computed standard deviation for all bins
-    fUncertainties.assign(fValues.size(), fStdDev);
 }
 
-void TRestHaloEvent::SetSpectrum(const std::vector<double>& freq,
-                                 const std::vector<double>& values,
-                                 const std::vector<double>& uncertainties,
-                                 TRestHaloMetadata::EValueUnit unit) {
-    fFrequency = freq;
-    fValues = values;
-    fUncertainties = uncertainties;
-    fMetadata.SetValueUnit(static_cast<int>(unit));
-
-    // Validate that uncertainties match values size
-    if (fUncertainties.size() != fValues.size()) {
-        std::cerr << "TRestHaloEvent::SetSpectrum() - Error: Uncertainties size ("
-                  << fUncertainties.size() << ") does not match values size ("
+void TRestHaloEvent::SetUncertainties(const std::vector<double>& uncertainties) {
+    if (uncertainties.size() != fValues.size()) {
+        std::cerr << "TRestHaloEvent::SetUncertainties() - Error: Uncertainties size ("
+                  << uncertainties.size() << ") does not match values size ("
                   << fValues.size() << ")" << std::endl;
         return;
     }
-
-    if (!fFrequency.empty()) {
-        fStartFrequency = fFrequency.front();
-        fStopFrequency = fFrequency.back();
-        if (fFrequency.size() > 1)
-            fResolution = fFrequency[1] - fFrequency[0];
-        else
-            fResolution = 0;
-    } else {
-        fStartFrequency = fStopFrequency = fResolution = 0;
-    }
-
-    // Compute average uncertainty for metadata (informational only)
-    double avg_unc = 0.0;
-    for (double u : fUncertainties) {
-        avg_unc += u;
-    }
-    if (!fUncertainties.empty()) {
-        avg_unc /= fUncertainties.size();
-    }
-    fStdDev = avg_unc;
-    
-    // Store in metadata
-    fMetadata.SetStdDev(fStdDev);
-    fMetadata.SetUncertaintiesProvided(true);  // Using provided uncertainties
+    fUncertainties = uncertainties;
 }
 
 double TRestHaloEvent::GetValueAtFrequency(double f, TRestHaloMetadata::EValueUnit outUnit) const {
