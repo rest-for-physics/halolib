@@ -26,16 +26,15 @@ public:
     TRestHaloEvent();
     ~TRestHaloEvent();
 
-    // Accept input values and their units
+    // Accept input values and optionally their per-bin uncertainties
+    // If no uncertainties are provided, they can be added later via SetUncertainties
     void SetSpectrum(const std::vector<double>& freq,
                      const std::vector<double>& values,
-                     TRestHaloMetadata::EValueUnit unit);
+                     TRestHaloMetadata::EValueUnit unit,
+                     const std::vector<double>& uncertainties = std::vector<double>());
 
-    // Accept input values with per-bin uncertainties
-    void SetSpectrum(const std::vector<double>& freq,
-                     const std::vector<double>& values,
-                     const std::vector<double>& uncertainties,
-                     TRestHaloMetadata::EValueUnit unit);
+    // Set or update uncertainties for an existing spectrum
+    void SetUncertainties(const std::vector<double>& uncertainties);
 
     const std::vector<double>& GetFrequencies() const { return fFrequency; }
     const std::vector<double>& GetValues() const { return fValues; }
