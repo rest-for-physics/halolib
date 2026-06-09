@@ -19,8 +19,8 @@ int main() {
     std::vector<double> vals2 = {2.0, 2.0, 2.0, 2.0, 2.0};
     std::vector<double> unc2 = {0.2, 0.2, 0.2, 0.2, 0.2};
     
-    s1.SetSpectrum(freq1, vals1, unc1, TRestHaloMetadata::V_RMS);
-    s2.SetSpectrum(freq2, vals2, unc2, TRestHaloMetadata::V_RMS);
+    s1.SetSpectrum(freq1, vals1, TRestHaloMetadata::V_RMS, unc1);
+    s2.SetSpectrum(freq2, vals2, TRestHaloMetadata::V_RMS, unc2);
     
     TRestHaloCombine combiner;
     combiner.AddEvent(&s1);
@@ -28,11 +28,13 @@ int main() {
     
     TRestHaloEvent* result = combiner.Combine();
     assert(result != nullptr);
-    assert(result->GetMetadata().GetUncertaintiesProvided());
     
     const auto &result_freq = result->GetFrequencies();
     const auto &result_vals = result->GetValues();
     const auto &result_unc = result->GetUncertainties();
+    
+    // Result should have uncertainties (from input events)
+    assert(!result_unc.empty());
     
     // Should span 1-8 Hz
     assert(result_freq.size() == 8);
@@ -65,7 +67,7 @@ int main() {
     std::vector<double> freq3 = {6.0, 7.0, 8.0, 9.0, 10.0};
     std::vector<double> vals3 = {3.0, 3.0, 3.0, 3.0, 3.0};
     std::vector<double> unc3 = {0.3, 0.3, 0.3, 0.3, 0.3};
-    s3.SetSpectrum(freq3, vals3, unc3, TRestHaloMetadata::V_RMS);
+    s3.SetSpectrum(freq3, vals3, TRestHaloMetadata::V_RMS, unc3);
     
     TRestHaloCombine combiner3;
     combiner3.AddEvent(&s1);
