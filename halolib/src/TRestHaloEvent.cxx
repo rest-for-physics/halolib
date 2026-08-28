@@ -84,7 +84,7 @@ double TRestHaloEvent::GetValueAtFrequency(double f, TRestHaloMetadata::EValueUn
 
 
 void TRestHaloEvent::PrintEvent() const {
-    printf("TRestHaloEvent: bins=%zu res=%.3fHz\n",
+    printf("TRestHaloEvent: bins=%zu res=%.3f\n",
            fFrequency.size(), fResolution);
     const_cast<TRestHaloMetadata&>(fMetadata).PrintMetadata();
 }
