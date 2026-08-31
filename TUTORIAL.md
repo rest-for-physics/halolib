@@ -2,18 +2,6 @@
 
 This tutorial demonstrates a complete data processing workflow for haloscope (frequency spectrum) data using the REST framework's halolib library. The `processor.py` script serves as a reference implementation for converting raw spectrum data into analyzable TRestHaloEvent objects with advanced processing capabilities.
 
-## Table of Contents
-
-1. [Prerequisites](#prerequisites)
-2. [Architecture](#architecture)
-3. [Detailed Workflow](#detailed-workflow)
-4. [Running the Script](#running-the-script)
-5. [Understanding Each Step](#understanding-each-step)
-6. [Customization Guide](#customization-guide)
-7. [Advanced Topics](#advanced-topics)
-8. [Troubleshooting](#troubleshooting)
-9. [Example Processing Script](#example-processing-script)
-
 ---
 
 ## Prerequisites
