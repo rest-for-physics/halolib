@@ -128,20 +128,9 @@ Input TGraphs (V_RMS Data)
     ↓
 [Output] → ROOT file with trimmed events
     ↓
-[Combine] → Chi2-weighted average of first two spectra
-    ↓
-[Output] → Separate ROOT file with combined spectrum
+[Combine] → (commented out, not used for pre-processing) Chi2-weighted average of first two spectra
+
 ```
-
-### Key Capabilities
-
-- **Format Conversion**: TGraph → TRestHaloEvent
-- **Unit Conversion**: Volts (V_RMS) ↔ Watts (power)
-- **Metadata Tracking**: Experiment conditions, frequency parameters
-- **Spectrum Trimming**: Chop data to the physics region you are interested in
-- **Optional Uncertainties**: Add per-bin uncertainties at creation or later with `SetUncertainties()`
-- **Spectral Combination**: Chi2-weighted averaging with per-bin uncertainties
-- **Batch Processing**: Efficient handling of thousands of spectra
 
 ---
 
@@ -241,7 +230,7 @@ fout.WriteObject(write_ev, name)    # Save with original name
 
 Object stored in ROOT file with ROOT's serialization format (.so binary encoding).
 
-### Phase 4: Event Collection for Combination
+### Phase 4: Event Collection for Combination (commented out for pre-processing)
 
 ```python
 if processed < 2:
@@ -332,14 +321,14 @@ Finished. Written 2000 TRestHaloEvent objects to processed_output.root
 
 ### Adding Uncertainties to Data
 
-**Pattern 1: If you have uncertainties to add:**
+**If you have uncertainties to add:**
 ```python
 ev = TRestHaloEvent()
 uncertainties = compute_uncertainties(spectrum)  # Your uncertainty calculation
 ev.SetSpectrum(freqs, vals_w, 1, uncertainties)  # Add at creation
 ```
 
-**Pattern 2: If uncertainties become available later:**
+**If uncertainties become available later:**
 ```python
 ev = TRestHaloEvent()
 ev.SetSpectrum(freqs, vals_w, 1)  # Create first
@@ -347,7 +336,7 @@ ev.SetSpectrum(freqs, vals_w, 1)  # Create first
 ev.SetUncertainties(uncertainties)  # Add when ready
 ```
 
-**Pattern 3: For combination, uncertainties are essential:**
+**For combination, uncertainties are essential:**
 ```python
 ev1 = TRestHaloEvent()
 ev1.SetSpectrum(freqs1, vals1, 1, unc1)  # Must have uncertainties
