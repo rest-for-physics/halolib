@@ -95,7 +95,7 @@ TRestHaloTrimProcess
 
 **Crops either side of central requency (center bin) by 'n'
 
-#### 4. **TRestHaloCombine**
+#### 4. **TRestHaloCombine (commented out for pre-processing)**
 Combines multiple spectra with chi2 weighting.
 
 ```cpp
