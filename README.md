@@ -3,6 +3,18 @@ procedures for the haloscope RADES.
 It assumes RF type readouts of power spectra and includes processes to prepare
 the data for advanced axion signal search analysis outside the framework.
 
+## Building with REST
+
+With this repository checked out at `source/libraries/halo` in the REST
+framework, enable it with `-DRESTLIB_HALO=ON` (or `-DREST_ALL_LIBS=ON`).
+The normal framework build and installation produce `libRestHalolib`, install
+the `TRestHalo*.h` headers and ROOT dictionaries, and register the library with
+`rest-config`. After sourcing the installed `thisREST.sh`, `restRoot` loads it
+through the normal REST library discovery.
+
+Use `-DTEST=ON` to build the three bundled tests. Their assertions remain enabled
+in Release builds. Run them with `ctest --test-dir <build> -R '^TRestHalo'`.
+
 ## Example Processing Script
 
 ### What This Script Does

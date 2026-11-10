@@ -237,7 +237,7 @@ TRestHaloEvent* TRestHaloCombine::CombineTwoEvents(const TRestHaloEvent* event1,
 
     // Create combined event with per-bin uncertainties
     TRestHaloEvent* result = new TRestHaloEvent();
-    result->SetSpectrum(combinedFreq, combinedValues, combinedErrors, event1->GetStoredUnit());
+    result->SetSpectrum(combinedFreq, combinedValues, event1->GetStoredUnit(), combinedErrors);
 
     return result;
 }
