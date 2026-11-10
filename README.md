@@ -12,6 +12,9 @@ the `TRestHalo*.h` headers and ROOT dictionaries, and register the library with
 `rest-config`. After sourcing the installed `thisREST.sh`, `restRoot` loads it
 through the normal REST library discovery.
 
+Generated halolib ROOT dictionaries are also copied beside the build-directory
+library, so it can be loaded without running the installation step.
+
 Use `-DTEST=ON` to build the three bundled tests. Their assertions remain enabled
 in Release builds. Run them with `ctest --test-dir <build> -R '^TRestHalo'`.
 
