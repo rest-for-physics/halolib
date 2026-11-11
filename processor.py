@@ -22,12 +22,15 @@ def discover_lib(provided_path=''):
         candidates.append(provided_path)
     # repo-local install
     here = os.path.dirname(__file__)
-    candidates.append(os.path.join(here, '..', '..', 'rest-install', 'lib', 'libhalolib.so'))
+    library_names = ('libRestHalolib.so', 'libhalolib.so')
+    for name in library_names:
+        candidates.append(os.path.join(here, '..', '..', 'rest-install', 'lib', name))
     # LD_LIBRARY_PATH entries
     ld = os.environ.get('LD_LIBRARY_PATH', '')
     for p in ld.split(':'):
         if p:
-            candidates.append(os.path.join(p, 'libhalolib.so'))
+            for name in library_names:
+                candidates.append(os.path.join(p, name))
     for c in candidates:
         try:
             if c and os.path.exists(os.path.expanduser(c)):
@@ -52,7 +55,7 @@ def main():
     try:
         from ROOT import TRestHaloEvent, TRestHaloMetadata, TRestHaloTrimProcess, TRestHaloCombine
     except Exception as e:
-        print('Failed to import REST classes from ROOT. Ensure libhalolib is available.')
+        print('Failed to import REST classes from ROOT. Ensure libRestHalolib is available.')
         print('Error:', e)
         return
 

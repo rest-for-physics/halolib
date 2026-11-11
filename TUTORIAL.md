@@ -19,7 +19,7 @@ This tutorial demonstrates a complete data processing workflow for haloscope (fr
 root --version
 
 # Verify libhalolib is installed
-ls -l /path/to/rest-install/lib/libhalolib.so
+ls -l /path/to/rest-install/lib/libRestHalolib.so
 
 # Test Python/ROOT integration
 python3 -c "from ROOT import TFile; print('ROOT available')"
@@ -291,7 +291,7 @@ python3 processor.py input.root output.root [libpath]
 |-----------|-------------|---------|
 | `input.root` | Input file with TGraph objects | `sample_data/data.root` |
 | `output.root` | Output file for trimmed events | `processed_output.root` |
-| `libpath` | (Optional) Path to libhalolib.so | `/usr/local/lib/libhalolib.so` |
+| `libpath` | (Optional) Path to libRestHalolib.so | `/usr/local/lib/libRestHalolib.so` |
 
 ### Example Commands
 
@@ -302,7 +302,7 @@ python3 processor.py sample_data/20241115-161219_12kA.root processed.root
 
 **With explicit library path:**
 ```bash
-python3 processor.py data.root output.root /home/user/rest-install/lib/libhalolib.so
+python3 processor.py data.root output.root /home/user/rest-install/lib/libRestHalolib.so
 ```
 
 ### Expected Output
@@ -356,15 +356,15 @@ result = combiner.Combine()  # Produces chi2-weighted average
 
 ### Issue: "Failed to import REST classes from ROOT"
 
-**Cause:** libhalolib.so not found or not loaded
+**Cause:** libRestHalolib.so not found or not loaded
 
 **Solutions:**
 ```bash
 # Check library exists
-ls -l /path/to/rest-install/lib/libhalolib.so
+ls -l /path/to/rest-install/lib/libRestHalolib.so
 
 # Try explicit path
-python3 processor.py input.root output.root /home/user/rest-install/lib/libhalolib.so
+python3 processor.py input.root output.root /home/user/rest-install/lib/libRestHalolib.so
 
 # Add to LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/home/user/rest-install/lib:$LD_LIBRARY_PATH
